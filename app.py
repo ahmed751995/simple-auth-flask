@@ -1,8 +1,4 @@
-import os
-import sys
-from flask import Flask, request, abort, jsonify, render_template, redirect, url_for
-from flask_cors import CORS
-from flask_bcrypt import Bcrypt
+from database.models import setup_db, db, Project, Task, User
 from flask_login import (
     UserMixin,
     login_user,
@@ -11,8 +7,13 @@ from flask_login import (
     logout_user,
     login_required,
 )
+from flask_bcrypt import Bcrypt
+from flask_cors import CORS
+import os
+import json
+import sys
+from flask import Flask, request, abort, jsonify, render_template, redirect, url_for, session
 
-from database.models import setup_db, db, Project, Task, User
 
 bcrypt = Bcrypt()
 login_manager = LoginManager()
@@ -51,6 +52,8 @@ def load_user(user_id):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
+        messages = {"message": "Condition failed on page"}
+        session['messages'] = messages
         uname = request.form.get('username', '')
         passwd = request.form.get('password', '')
         # passwd = bcrypt.generate_password_hash(passwd)
@@ -59,9 +62,13 @@ def login():
         if(user):
             if bcrypt.check_password_hash(user.pwd, passwd):
                 login_user(user)
+                session['messages'] = ''
                 return redirect(url_for('index'))
 
-    return render_template('login.html')
+    message = session.get('messages', '')
+    session['messages'] = ''
+    # session['messages'] = json.dumps({"mesa"})
+    return render_template('login.html', message=message)
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -72,7 +79,7 @@ def signup():
         email = request.form.get('username', '')
         user = User.query.filter((User.username == uname) | (
             User.email == email)).one_or_none()
-        if not user:
+        if not user and passwd and email and uname:
             u = User(username=uname, email=email,
                      pwd=bcrypt.generate_password_hash(passwd).decode('utf-8'))
             u.insert()
