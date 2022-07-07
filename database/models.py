@@ -14,10 +14,10 @@ from flask_login import (
 )
 
 
-database_name = "project"
+# database_name = "project"
 
-database_path = "postgresql:///"+database_name
-
+# database_path = "postgresql:///"+database_name
+database_path = "postgres://tkqwgaxuehseft:c1e46be0ae11ab829011c47c8a2fcfc6a1cbe5d62c0c363962fe865a9b77d696@ec2-34-239-241-121.compute-1.amazonaws.com:5432/d3q0895e1aahhv"
 db = SQLAlchemy()
 
 
